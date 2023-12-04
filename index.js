@@ -322,7 +322,7 @@ app.use(session({
 app.post('/login', (requisicao, resposta) => {
   const usuario = requisicao.body.usuario;
   const senha = requisicao.body.senha;
-  if (usuario && senha && (usuario === 'igor') && (senha === '1234')) {
+  if (usuario && senha && (usuario === 'Igor') && (senha === '1234')) {
       requisicao.session.usuarioAutenticado = true;
       resposta.redirect('/');
   } else {
@@ -332,7 +332,41 @@ app.post('/login', (requisicao, resposta) => {
               <head>
                   <meta charset="UTF-8">
                   <title>Falhou na autenticação!</title>
-              </head>
+              <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f8f9fa;
+                  margin: 0;
+                  padding: 0;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  height: 100vh;
+              }
+      
+              h3 {
+                  color: #dc3545;
+              }
+      
+              a {
+                  color: #007bff;
+                  text-decoration: none;
+              }
+      
+              a:hover {
+                  text-decoration: underline;
+              }
+      
+              .container {
+                  background-color: #fff;
+                  padding: 20px;
+                  border-radius: 8px;
+                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                  text-align: center;
+              }
+          </style>
+            </head>
               <body>
                   <h3>Nome de usuário ou senha invalidos!</h3>
                   <a href="/login.html">Voltar para página de login</a>
@@ -342,14 +376,72 @@ app.post('/login', (requisicao, resposta) => {
   }
 });
 
-app.get('/*', autenticar, (req, res) => {
+app.get('/', autenticar, (req, res) => {
+  const ultimaVisita = req.cookies.ultimaVisita || "Não foi visitado anteriormente";
+    const data = new Date();
+    res.cookie("ultimaVisita", data.toLocaleString(), {
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+      httpOnly: true
+      })
 
-});
+      app.use(express.static(path.join(process.cwd(),`src`)));
 
-app.get(`/`, (req, res) => {
-    res.send(`<h1><a href="/form.html">Clique Aqui</a></h1>`);
-});
-
+      resposta.send(`
+      <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #f0f0f0;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+      }
+  
+      h1 {
+          text-align: center;
+          color: #333;
+      }
+  
+      a {
+          color: #007bff;
+          text-decoration: none;
+      }
+  
+      a:hover {
+          text-decoration: underline;
+      }
+  
+      .instructions {
+          text-align: center;
+          margin-top: 20px;
+          color: #555;
+      }
+  
+      .button-container {
+          text-align: center;
+          margin-top: 20px;
+      }
+  
+      button {
+          background-color: #007bff;
+          color: white;
+          padding: 10px 20px;
+          font-size: 16px;
+          border: none;
+          cursor: pointer;
+      }
+  
+      button:hover {
+          background-color: #0056b3;
+      }
+  </style>
+      <h2>Ultimo acesso de Igor em ${dataUltimoAcesso}</h2>
+      </body>`);
+  });
+  
 app.listen(PORTA, HOST, () => {
     console.log(`Rodando em ${HOST}:${PORTA}`);
 });

@@ -1,10 +1,13 @@
 import express from "express";
 import path from "path";
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
 
 const PORTA = 3000;
 const HOST = "0.0.0.0";
 
 const app = express();
+app.use(cookieParser());
 
 var lista_usuarios = [];
 
@@ -289,6 +292,58 @@ app.get(`/lista`, (req, res) => {
 
     res.header("Content-Type", "text/html");
     res.end(conteudo);
+});
+app.get(`/`, (req, res) => {
+  const ultimaVisita = req.cookies.ultimaVisita || "Não foi visitado anteriormente";
+    const data = new Date();
+    res.cookie("ultimaVisita", data.toLocaleString(), {
+    maxAge: 1000 * 60 * 60 * 24 * 30,
+    httpOnly: true
+    })
+    res.send(`<h1><a href="/form.html">Clique Aqui</a></h1><br><h2>Ultima visita foi em ${ultimaVisita}</h2>`);
+   
+});
+function autenticar(requisicao, resposta, next) {
+  if (requisicao.session.usuarioAutenticado) {
+      next();
+  } else {
+      resposta.redirect("/login.html");
+  }
+}
+
+app.use(session({
+  secret: "secreta",
+  resave: true,
+  saveUninitialized: true,
+  cookie: {
+      maxAge: 1000 * 60 * 15
+  }
+}));
+app.post('/login', (requisicao, resposta) => {
+  const usuario = requisicao.body.usuario;
+  const senha = requisicao.body.senha;
+  if (usuario && senha && (usuario === 'igor') && (senha === '1234')) {
+      requisicao.session.usuarioAutenticado = true;
+      resposta.redirect('/');
+  } else {
+      resposta.end(`
+          <!DOCTYPE html>
+          <html>
+              <head>
+                  <meta charset="UTF-8">
+                  <title>Falhou na autenticação!</title>
+              </head>
+              <body>
+                  <h3>Nome de usuário ou senha invalidos!</h3>
+                  <a href="/login.html">Voltar para página de login</a>
+              </body>
+          </html>
+      `);
+  }
+});
+
+app.get('/*', autenticar, (req, res) => {
+
 });
 
 app.get(`/`, (req, res) => {
